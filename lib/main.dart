@@ -27,21 +27,22 @@ class _MyAppState extends State<MyApp> {
   };
 
   List<Meal> _availableMeals = DUMMY_MEALS;
+  List<Meal> _favoriteMeals = [];
 
-  void _setFilters(Map<String, bool> filterData){
+  void _setFilters(Map<String, bool> filterData) {
     setState(() {
       _filters = filterData;
       _availableMeals = DUMMY_MEALS.where((meal) {
-        if(_filters['gluten']! && !meal.isGlutenFree){
+        if (_filters['gluten']! && !meal.isGlutenFree) {
           return false;
         }
-        if(_filters['lactose']! && !meal.isLactoseFree){
+        if (_filters['lactose']! && !meal.isLactoseFree) {
           return false;
         }
-        if(_filters['vegetarian']! && !meal.isVegetarian){
+        if (_filters['vegetarian']! && !meal.isVegetarian) {
           return false;
         }
-        if(_filters['vegan']! && !meal.isVegan){
+        if (_filters['vegan']! && !meal.isVegan) {
           return false;
         }
         return true;
@@ -49,12 +50,32 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void _toggleFavorite(String mealId) {
+    final existingIndex = _favoriteMeals.indexWhere((meal) => meal.id == mealId);
+    if (existingIndex >= 0) {
+      setState(() {
+        _favoriteMeals.removeAt(existingIndex);
+      });
+    } else {
+      setState(() {
+        _favoriteMeals.add(
+          DUMMY_MEALS.firstWhere((meal) => meal.id == mealId),
+        );
+      });
+    }
+  }
+
+  bool _isMealFavorite(String mealId) {
+    return _favoriteMeals.any((meal) => meal.id == mealId);
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'DeliMeal',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.pink).copyWith(secondary: Colors.amber),
+        colorScheme:
+            ColorScheme.fromSwatch(primarySwatch: Colors.pink).copyWith(secondary: Colors.amber),
         canvasColor: const Color.fromRGBO(255, 254, 229, 1),
         fontFamily: 'Raleway',
         appBarTheme: const AppBarTheme(
@@ -79,10 +100,20 @@ class _MyAppState extends State<MyApp> {
       ),
       //home: const CategoriesScreen(),
       routes: {
-        '/': (ctx) => TabsScreen(),
-        CategoryMealsScreen.routName: (ctx) => CategoryMealsScreen(availableMeals: _availableMeals,),
-        MealDetailScreen.routeName: (ctx) => MealDetailScreen(),
-        FiltersScreen.routeName: (ctx) => FiltersScreen(currentFilters: _filters, saveFilters: _setFilters,),
+        '/': (ctx) => TabsScreen(
+              favoriteMeals: _favoriteMeals,
+            ),
+        CategoryMealsScreen.routName: (ctx) => CategoryMealsScreen(
+              availableMeals: _availableMeals,
+            ),
+        MealDetailScreen.routeName: (ctx) => MealDetailScreen(
+              toggleFavorite: _toggleFavorite,
+              isMealFavorite: _isMealFavorite,
+            ),
+        FiltersScreen.routeName: (ctx) => FiltersScreen(
+              currentFilters: _filters,
+              saveFilters: _setFilters,
+            ),
       },
       onUnknownRoute: (settings) {
         return MaterialPageRoute(builder: (ctx) => const CategoriesScreen());
