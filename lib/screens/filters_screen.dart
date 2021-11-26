@@ -4,7 +4,10 @@ import '../widgets/main_drawer.dart';
 class FiltersScreen extends StatefulWidget {
   static const routeName = '/filters';
 
-  const FiltersScreen({Key? key}) : super(key: key);
+  final Function saveFilters;
+  final Map<String, bool> currentFilters;
+
+  const FiltersScreen({Key? key, required this.saveFilters, required this.currentFilters}) : super(key: key);
 
   @override
   State<FiltersScreen> createState() => _FiltersScreenState();
@@ -16,18 +19,23 @@ class _FiltersScreenState extends State<FiltersScreen> {
   var _vegan = false;
   var _lactoseFree = false;
 
+  @override
+  void initState(){
+    _glutenFree = widget.currentFilters['gluten']!;
+    _lactoseFree = widget.currentFilters['lactose']!;
+    _vegetarian = widget.currentFilters['vegetarian']!;
+    _vegan = widget.currentFilters['vegan']!;
+    super.initState();
+  }
+
   Widget _buildSwitchListTile(
-      String title, String description, bool currentValue, Function updateValue) {
+      String title, String description, bool currentValue, Function(bool) updateValue) {
     return SwitchListTile(
       activeColor: Theme.of(context).colorScheme.secondary,
       title: Text(title),
       value: currentValue,
       subtitle: Text(description),
-      onChanged: (newValue) {
-        setState(() {
-          updateValue;
-        });
-      },
+      onChanged: updateValue,
     );
   }
 
@@ -36,12 +44,26 @@ class _FiltersScreenState extends State<FiltersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Filters!'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              final selectedFilters = {
+                'gluten': _glutenFree,
+                'lactose': _lactoseFree,
+                'vegetarian': _vegetarian,
+                'vegan': _vegan,
+              };
+              widget.saveFilters(selectedFilters);
+            },
+            icon: const Icon(Icons.save),
+          ),
+        ],
       ),
       drawer: const MainDrawer(),
       body: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             child: Text(
               'Adjust your meal selection',
               style: Theme.of(context).textTheme.subtitle1,
@@ -64,7 +86,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                   'Lactose-free',
                   'Only include lactose-free meals.',
                   _lactoseFree,
-                      (newValue) {
+                  (newValue) {
                     setState(() {
                       _lactoseFree = newValue;
                     });
@@ -74,7 +96,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                   'Vegetarian',
                   'Only include vegetarian meals.',
                   _vegetarian,
-                      (newValue) {
+                  (newValue) {
                     setState(() {
                       _vegetarian = newValue;
                     });
@@ -84,7 +106,7 @@ class _FiltersScreenState extends State<FiltersScreen> {
                   'Vegan',
                   'Only include Vegan meals.',
                   _vegan,
-                      (newValue) {
+                  (newValue) {
                     setState(() {
                       _vegan = newValue;
                     });
