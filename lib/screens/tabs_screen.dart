@@ -29,6 +29,7 @@ class _TabsScreenState extends State<TabsScreen> {
         'title': const Text('Your Favorites'),
       },
     ];
+    super.initState();
   }
 
   void _selectPage(int index) {
